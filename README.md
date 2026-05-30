@@ -1,3 +1,4 @@
+![Playwright QA Portfolio](https://github.com/byzkit58-coder/PC-cafe-management-platform/actions/workflows/playwright.yml/badge.svg)
 # PC방 매장 운영 플랫폼 QA 포트폴리오
 
 ## 1. 프로젝트 개요

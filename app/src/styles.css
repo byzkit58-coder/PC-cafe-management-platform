@@ -1,0 +1,118 @@
+:root {
+  font-family: Arial, sans-serif;
+  color: #17202a;
+  background: #f4f6f8;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #1d4ed8;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  border-color: #a7b0bd;
+  background: #c5ccd6;
+  cursor: not-allowed;
+}
+
+input,
+select {
+  border: 1px solid #c5ccd6;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.topbar nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  color: #667085;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.panel,
+.card,
+.row {
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  background: white;
+  padding: 16px;
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+  width: min(420px, 90vw);
+}
+
+.section {
+  display: grid;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.6fr 0.8fr 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.error {
+  color: #b42318;
+}

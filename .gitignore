@@ -1,0 +1,9 @@
+node_modules/
+app/node_modules/
+mock-api/node_modules/
+dist/
+app/dist/
+playwright-report/
+test-results/
+.cache/
+.DS_Store

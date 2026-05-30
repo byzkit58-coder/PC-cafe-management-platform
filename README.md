@@ -1,32 +1,43 @@
-# PC Cafe QA Portfolio
+# PC방 매장 운영 플랫폼 QA 포트폴리오
 
-## 1. Project Overview
+## 1. 프로젝트 개요
 
-This project is a QA automation portfolio for a mock PC cafe store operation platform. It models customer login, seat usage, food ordering, payment, coupon, points, settlement, and role-based access control with a React mock app and a JSON-backed mock API.
+이 프로젝트는 PC방 매장 운영 플랫폼을 가정한 QA 자동화 포트폴리오입니다. React mock 화면과 JSON 기반 mock API를 구성하고, 사용자-관리자 흐름과 주요 비즈니스 정책을 Playwright로 검증합니다. 실제 결제, 실제 DB, 실제 인증 서버는 사용하지 않고 테스트 가능한 mock 서비스로 요구사항을 재현했습니다. 자동화 대상은 좌석, 주문, 결제 실패, 쿠폰/포인트, 정산, 권한처럼 운영 리스크가 큰 흐름입니다.
 
-The goal is not commercial product completeness. The goal is to show QA lead-level thinking: risk-based test selection, repeatable test data, clear automation boundaries, and CI reporting.
+핵심 문서:
+- [서비스 개요](01_requirements/service_overview.md)
+- [테스트 전략](02_test_design/test_strategy.md)
+- [AI 생성 테스트케이스 검토](03_ai_testcase_generation/reviewed_test_cases.md)
 
-## 2. QA Portfolio Purpose
+## 2. 주요 검증 범위
 
-This portfolio demonstrates how to turn store-operation requirements into executable tests.
+- 로그인
+- 좌석 선택
+- 음식 주문
+- 관리자 주문 처리
+- 결제 실패 처리
+- 쿠폰/포인트 복원
+- 정산 반영
+- 권한별 접근 제어
+- 매장 간 데이터 접근 제한
 
-- User-to-admin workflows are verified with Playwright E2E tests.
-- Deterministic business rules such as payment, settlement, coupon and points restoration, and permissions are verified with Playwright API tests.
-- `/api/test/reset` restores `mock-api/data/db.json` from `seed.json` before each test, so tests can run independently.
-- GitHub Actions runs the tests automatically and uploads the Playwright HTML report.
+## 3. 기술 스택
 
-## 3. Tech Stack
+- React
+- TypeScript
+- Node.js
+- Express
+- JSON mock data
+- Playwright
+- GitHub Actions
 
-- Frontend mock: React, Vite
-- Mock API: Node.js, Express
-- Test automation: Playwright Test
-- Test data: JSON seed data and file-based `db.json`
-- CI: GitHub Actions, Ubuntu, Node.js 20
-
-## 4. Folder Structure
+## 4. 프로젝트 구조
 
 ```text
 pc-cafe-qa-portfolio/
+|-- 01_requirements/
+|-- 02_test_design/
+|-- 03_ai_testcase_generation/
 |-- app/
 |   |-- src/
 |   |-- index.html
@@ -45,158 +56,78 @@ pc-cafe-qa-portfolio/
 |   `-- utils/
 |-- playwright.config.ts
 |-- package.json
-`-- .github/workflows/playwright.yml
+`-- .github/workflows/
 ```
 
-## 5. Service Scenario
+## 5. 테스트 전략 요약
 
-- A user logs in and starts using an available seat.
-- Only the user currently using a seat can create an order.
-- A new order starts as `payment_pending`.
-- Successful payment changes the order to `payment_completed`.
-- A store manager processes the order through `accepted -> cooking -> completed`.
-- The admin order list reflects orders created from the user screen.
-- A normal user cannot access admin pages or admin APIs.
-- Store A managers cannot access Store B orders or settlements.
-- Settlement includes only `completed` orders.
-- Canceling an order restores used coupons and points.
+- 사용자와 관리자 화면이 연결되는 흐름은 E2E 테스트로 검증합니다.
+- 결제, 정산, 쿠폰/포인트, 권한처럼 결과가 명확한 영역은 API 테스트로 검증합니다.
+- 모든 테스트는 실행 전 `/api/test/reset`을 호출해 JSON seed 데이터 기준으로 초기화합니다.
+- 전체 테스트는 GitHub Actions에서 실행할 수 있습니다.
 
-## 6. Test Strategy Summary
+## 6. 자동화 테스트 범위
 
-- E2E tests cover the critical connected flow between user screens and admin screens.
-- API tests cover deterministic high-risk business rules without depending on UI timing.
-- Every test resets data before execution through `/api/test/reset`.
-- UI locators use `data-testid` where possible for stable automation.
-- Page Object Model separates repeated UI actions from test intent.
+### E2E 테스트
 
-## 7. Automation Scope
+- 일반 사용자 로그인
+- 좌석 선택
+- 사용자 주문 후 관리자 주문 목록 반영
+- 관리자 주문 완료 후 사용자 화면 반영
+- 일반 사용자 관리자 페이지 접근 차단
 
-- Login success and failure
-- Unauthenticated protected API access
-- Seat selection
-- Order creation from an active seat
-- User order visibility in the admin order list
-- Order status transitions
-- User access blocking for admin pages and APIs
-- Store-level permission isolation
-- Failed payment status handling
-- Duplicate payment blocking
-- Coupon and points restoration on cancel
-- Settlement based only on completed orders
+### API 테스트
 
-## 8. E2E Test List
+- 결제 실패 시 주문 상태 유지
+- 결제 실패 주문 정산 미반영
+- 중복 결제 방지
+- 주문 취소 시 쿠폰 복원
+- 주문 취소 시 포인트 복원
+- 완료 주문만 정산 반영
+- 일반 사용자 관리자 API 접근 차단
+- 매장 A 관리자의 매장 B 주문 접근 차단
 
-Current E2E test count: 5.
-
-- `TC-AUTH-001 user login succeeds`
-- `TC-SEAT-001 available seat can be started`
-- `TC-ORDER-003 user order appears in admin order list`
-- `TC-STATUS-003 manager completes order and user sees completed status`
-- `TC-PERM-001 normal user is blocked from admin page`
-
-## 9. API Test List
-
-Current API test count: 8.
-
-- `API-001 reset API restores seed seat state`
-- `API-002 login failure returns 401`
-- `API-003 unauthenticated request returns 401`
-- `API-004 user cannot access admin orders API`
-- `API-005 Store A manager cannot access Store B order or settlement`
-- `API-006 failed payment keeps order status payment_pending`
-- `API-007 duplicate payment for same order is blocked`
-- `API-008 settlement includes completed orders only and cancel restores benefits`
-
-## 10. How To Run
-
-Install all dependencies:
+## 7. 실행 방법
 
 ```bash
 npm run install:all
 ```
 
-Run the mock API:
-
 ```bash
 npm run dev:api
 ```
-
-Run the mock app:
 
 ```bash
 npm run dev:app
 ```
 
-Run E2E tests:
-
 ```bash
 npm run test:e2e
 ```
-
-Run API tests:
 
 ```bash
 npm run test:api
 ```
 
-Run all tests:
-
 ```bash
 npm test
 ```
 
-Open the Playwright HTML report:
-
 ```bash
 npm run report
 ```
 
-## 11. CI Configuration
+## 8. CI
 
-The GitHub Actions workflow is defined in [.github/workflows/playwright.yml](.github/workflows/playwright.yml).
+- GitHub Actions에서 Playwright 테스트를 실행합니다.
+- push 또는 pull_request 시 실행됩니다.
+- Playwright HTML Report를 artifact로 업로드합니다.
+- workflow 파일: [.github/workflows/playwright.yml](.github/workflows/playwright.yml)
 
-It runs on `push` and `pull_request` for `main` and `master`.
+## 9. 포트폴리오 핵심 포인트
 
-CI steps:
-
-1. Checkout repository
-2. Setup Node.js 20
-3. Run root `npm ci`
-4. Run app `npm ci`
-5. Run mock-api `npm ci`
-6. Run `npx playwright install --with-deps`
-7. Run `npx playwright test`
-8. Upload `playwright-report` as an artifact
-
-The report upload uses `if: always()`, so the HTML report is preserved even when tests fail.
-
-## 12. Report Review
-
-Local report:
-
-```bash
-npm run report
-```
-
-CI report:
-
-- Open the GitHub Actions run.
-- Download the `playwright-report` artifact.
-- Open the HTML report locally.
-
-## 13. Portfolio Strengths
-
-- Shows risk-based QA automation, not only happy-path UI checks.
-- Separates E2E tests and API tests by responsibility.
-- Uses a deterministic reset endpoint for repeatable test execution.
-- Applies Page Object Model for maintainable UI automation.
-- Automates high-risk areas: payment failure, duplicate payment, settlement filtering, coupon and points restoration, and role/store permissions.
-- Provides CI execution and HTML reporting suitable for review by hiring managers or QA leads.
-
-## 14. Future Improvements
-
-- Add more API tests for every invalid order status transition.
-- Add stock decrement and sold-out menu edge cases to API coverage.
-- Add an hq_admin-specific settlement aggregation test.
-- Add Docker Compose for standardized local execution.
-- Add PR comments summarizing test results and linking the report artifact.
+- 요구사항 기반 테스트 설계
+- 리스크 기반 자동화 대상 선정
+- AI 테스트케이스 생성 후 QA 리뷰
+- Playwright E2E/API 테스트 분리
+- GitHub Actions 기반 자동 실행

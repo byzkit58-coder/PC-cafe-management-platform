@@ -4,11 +4,13 @@ import './styles.css';
 
 const API_BASE = 'http://127.0.0.1:4000';
 const statusFlow = ['payment_pending', 'payment_completed', 'accepted', 'cooking', 'completed'];
+const savedToken = localStorage.getItem('token') ?? '';
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
-  const [token, setToken] = useState(localStorage.getItem('token') ?? '');
+  const [token, setToken] = useState(savedToken);
   const [user, setUser] = useState(null);
+  const [bootstrapping, setBootstrapping] = useState(Boolean(savedToken));
 
   useEffect(() => {
     const handler = () => setPath(window.location.pathname);
@@ -17,11 +19,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!token) return;
-    api('/api/me', token)
+    if (!savedToken) return;
+    api('/api/me', savedToken)
       .then((data) => setUser(data.user))
-      .catch(() => logout());
-  }, [token]);
+      .catch(() => {
+        localStorage.removeItem('token');
+        setToken('');
+        setUser(null);
+      })
+      .finally(() => setBootstrapping(false));
+  }, []);
 
   const navigate = (nextPath) => {
     window.history.pushState({}, '', nextPath);
@@ -32,14 +39,20 @@ function App() {
     localStorage.removeItem('token');
     setToken('');
     setUser(null);
+    setBootstrapping(false);
     navigate('/');
   };
+
+  if (bootstrapping) {
+    return <main data-testid="auth-loading" className="page">Loading...</main>;
+  }
 
   if (!token || !user) {
     return <LoginPage onLogin={(nextToken, nextUser) => {
       localStorage.setItem('token', nextToken);
       setToken(nextToken);
       setUser(nextUser);
+      setBootstrapping(false);
       navigate(nextUser.role === 'user' ? '/seats' : '/admin/orders');
     }} />;
   }

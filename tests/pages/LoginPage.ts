@@ -12,6 +12,9 @@ export class LoginPage {
     await this.page.getByTestId('login-username').fill(username);
     await this.page.getByTestId('login-password').fill(password);
     await this.page.getByTestId('login-submit').click();
+    await expect(this.page.getByTestId('current-user-name'), `Login should complete for ${username} before the test continues.`).toHaveText(
+      username
+    );
   }
 
   async expectCurrentUser(displayName: string) {

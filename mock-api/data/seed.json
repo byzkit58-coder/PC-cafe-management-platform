@@ -4,27 +4,117 @@
     { "id": "storeB", "name": "Store B" }
   ],
   "users": [
-    { "id": "user01", "username": "user01", "password": "pass1234", "role": "user", "storeId": "storeA" },
-    { "id": "user02", "username": "user02", "password": "pass1234", "role": "user", "storeId": "storeA" },
-    { "id": "staff_store_a", "username": "staff_store_a", "password": "pass1234", "role": "staff", "storeId": "storeA" },
-    { "id": "manager_store_a", "username": "manager_store_a", "password": "pass1234", "role": "store_manager", "storeId": "storeA" },
-    { "id": "manager_store_b", "username": "manager_store_b", "password": "pass1234", "role": "store_manager", "storeId": "storeB" },
-    { "id": "hq_admin", "username": "hq_admin", "password": "pass1234", "role": "hq_admin", "storeId": null }
+    {
+      "id": "user01",
+      "username": "user01",
+      "password": "pass1234",
+      "role": "user",
+      "storeId": "storeA"
+    },
+    {
+      "id": "user02",
+      "username": "user02",
+      "password": "pass1234",
+      "role": "user",
+      "storeId": "storeA"
+    },
+    {
+      "id": "staff_store_a",
+      "username": "staff_store_a",
+      "password": "pass1234",
+      "role": "staff",
+      "storeId": "storeA"
+    },
+    {
+      "id": "manager_store_a",
+      "username": "manager_store_a",
+      "password": "pass1234",
+      "role": "store_manager",
+      "storeId": "storeA"
+    },
+    {
+      "id": "manager_store_b",
+      "username": "manager_store_b",
+      "password": "pass1234",
+      "role": "store_manager",
+      "storeId": "storeB"
+    },
+    {
+      "id": "hq_admin",
+      "username": "hq_admin",
+      "password": "pass1234",
+      "role": "hq_admin",
+      "storeId": null
+    }
   ],
   "seats": [
-    { "id": "seatA01", "storeId": "storeA", "label": "A-01", "status": "available", "userId": null },
-    { "id": "seatA02", "storeId": "storeA", "label": "A-02", "status": "occupied", "userId": "user02" },
-    { "id": "seatB01", "storeId": "storeB", "label": "B-01", "status": "available", "userId": null }
+    {
+      "id": "seatA01",
+      "storeId": "storeA",
+      "label": "A-01",
+      "status": "available",
+      "userId": null
+    },
+    {
+      "id": "seatA02",
+      "storeId": "storeA",
+      "label": "A-02",
+      "status": "occupied",
+      "userId": "user02"
+    },
+    {
+      "id": "seatB01",
+      "storeId": "storeB",
+      "label": "B-01",
+      "status": "available",
+      "userId": null
+    }
   ],
   "menus": [
-    { "id": "menuA_ramen", "storeId": "storeA", "name": "김치볶음밥", "price": 5000, "stock": 10 },
-    { "id": "menuA_cola", "storeId": "storeA", "name": "Cola", "price": 2000, "stock": 20 },
-    { "id": "menuA_toast_soldout", "storeId": "storeA", "name": "Sold Out Toast", "price": 4500, "stock": 0 },
-    { "id": "menuB_burger", "storeId": "storeB", "name": "Store B Burger", "price": 9000, "stock": 5 }
+    {
+      "id": "menuA_ramen",
+      "storeId": "storeA",
+      "name": "김치볶음밥",
+      "price": 5000,
+      "stock": 10
+    },
+    {
+      "id": "menuA_cola",
+      "storeId": "storeA",
+      "name": "Cola",
+      "price": 2000,
+      "stock": 20
+    },
+    {
+      "id": "menuA_toast_soldout",
+      "storeId": "storeA",
+      "name": "Sold Out Toast",
+      "price": 4500,
+      "stock": 0
+    },
+    {
+      "id": "menuB_burger",
+      "storeId": "storeB",
+      "name": "Store B Burger",
+      "price": 9000,
+      "stock": 5
+    }
   ],
   "coupons": [
-    { "id": "coupon_user01_3000", "userId": "user01", "discountAmount": 3000, "status": "available", "orderId": null },
-    { "id": "coupon_restore_3000", "userId": "user01", "discountAmount": 3000, "status": "used", "orderId": "orderCancelCoupon" }
+    {
+      "id": "coupon_user01_3000",
+      "userId": "user01",
+      "discountAmount": 3000,
+      "status": "available",
+      "orderId": null
+    },
+    {
+      "id": "coupon_restore_3000",
+      "userId": "user01",
+      "discountAmount": 3000,
+      "status": "used",
+      "orderId": "orderCancelCoupon"
+    }
   ],
   "points": [
     { "userId": "user01", "balance": 1000 },
@@ -40,7 +130,14 @@
       "storeId": "storeA",
       "userId": "user01",
       "seatId": "seatA01",
-      "items": [{ "menuId": "menuA_ramen", "name": "김치볶음밥", "quantity": 1, "price": 5000 }],
+      "items": [
+        {
+          "menuId": "menuA_ramen",
+          "name": "김치볶음밥",
+          "quantity": 1,
+          "price": 5000
+        }
+      ],
       "status": "completed",
       "subtotal": 5000,
       "couponId": null,
@@ -53,7 +150,9 @@
       "storeId": "storeA",
       "userId": "user01",
       "seatId": "seatA01",
-      "items": [{ "menuId": "menuA_cola", "name": "Cola", "quantity": 1, "price": 2000 }],
+      "items": [
+        { "menuId": "menuA_cola", "name": "Cola", "quantity": 1, "price": 2000 }
+      ],
       "status": "payment_pending",
       "subtotal": 2000,
       "couponId": null,
@@ -66,7 +165,14 @@
       "storeId": "storeA",
       "userId": "user01",
       "seatId": "seatA01",
-      "items": [{ "menuId": "menuA_ramen", "name": "김치볶음밥", "quantity": 1, "price": 5000 }],
+      "items": [
+        {
+          "menuId": "menuA_ramen",
+          "name": "김치볶음밥",
+          "quantity": 1,
+          "price": 5000
+        }
+      ],
       "status": "accepted",
       "subtotal": 5000,
       "couponId": null,
@@ -79,7 +185,14 @@
       "storeId": "storeA",
       "userId": "user01",
       "seatId": "seatA01",
-      "items": [{ "menuId": "menuA_ramen", "name": "김치볶음밥", "quantity": 1, "price": 5000 }],
+      "items": [
+        {
+          "menuId": "menuA_ramen",
+          "name": "김치볶음밥",
+          "quantity": 1,
+          "price": 5000
+        }
+      ],
       "status": "payment_completed",
       "subtotal": 5000,
       "couponId": "coupon_restore_3000",
@@ -92,7 +205,9 @@
       "storeId": "storeA",
       "userId": "user01",
       "seatId": "seatA01",
-      "items": [{ "menuId": "menuA_cola", "name": "Cola", "quantity": 1, "price": 2000 }],
+      "items": [
+        { "menuId": "menuA_cola", "name": "Cola", "quantity": 1, "price": 2000 }
+      ],
       "status": "payment_completed",
       "subtotal": 2000,
       "couponId": null,
@@ -105,7 +220,14 @@
       "storeId": "storeB",
       "userId": "user02",
       "seatId": "seatB01",
-      "items": [{ "menuId": "menuB_burger", "name": "Store B Burger", "quantity": 1, "price": 9000 }],
+      "items": [
+        {
+          "menuId": "menuB_burger",
+          "name": "Store B Burger",
+          "quantity": 1,
+          "price": 9000
+        }
+      ],
       "status": "completed",
       "subtotal": 9000,
       "couponId": null,

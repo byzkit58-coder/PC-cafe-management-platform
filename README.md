@@ -5,6 +5,7 @@
 이 프로젝트는 PC방 매장 운영 플랫폼을 가정한 QA 자동화 포트폴리오입니다. React mock 화면과 JSON 기반 mock API를 구성하고, 사용자-관리자 흐름과 주요 비즈니스 정책을 Playwright로 검증합니다. 실제 결제, 실제 DB, 실제 인증 서버는 사용하지 않고 테스트 가능한 mock 서비스로 요구사항을 재현했습니다. 자동화 대상은 좌석, 주문, 결제 실패, 쿠폰/포인트, 정산, 권한처럼 운영 리스크가 큰 흐름입니다.
 
 핵심 문서:
+
 - [서비스 개요](01_requirements/service_overview.md)
 - [테스트 전략](02_test_design/test_strategy.md)
 - [AI 생성 테스트케이스 검토](03_ai_testcase_generation/reviewed_test_cases.md)

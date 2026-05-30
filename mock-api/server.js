@@ -1,49 +1,51 @@
-import cors from 'cors';
-import express from 'express';
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import cors from "cors";
+import express from "express";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const seedPath = join(__dirname, 'data', 'seed.json');
-const dbPath = join(__dirname, 'data', 'db.json');
+const seedPath = join(__dirname, "data", "seed.json");
+const dbPath = join(__dirname, "data", "db.json");
 const PORT = 4000;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'pc-cafe-mock-api' });
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "pc-cafe-mock-api" });
 });
 
-app.post('/api/login', (req, res) => {
+app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
   const db = readDb();
-  const user = db.users.find((item) => item.username === username && item.password === password);
+  const user = db.users.find(
+    (item) => item.username === username && item.password === password,
+  );
 
   if (!user) {
-    return res.status(401).json({ message: 'Invalid username or password' });
+    return res.status(401).json({ message: "Invalid username or password" });
   }
 
   res.json({
     token: createToken(user),
-    user: publicUser(user)
+    user: publicUser(user),
   });
 });
 
-app.post('/api/test/reset', (_req, res) => {
+app.post("/api/test/reset", (_req, res) => {
   copyFileSync(seedPath, dbPath);
-  res.json({ ok: true, message: 'db.json restored from seed.json' });
+  res.json({ ok: true, message: "db.json restored from seed.json" });
 });
 
-app.use('/api', authenticate);
+app.use("/api", authenticate);
 
-app.get('/api/me', (req, res) => {
+app.get("/api/me", (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
-app.get('/api/seats', (req, res) => {
+app.get("/api/seats", (req, res) => {
   const db = readDb();
   const storeId = req.query.storeId;
   const forbidden = assertStoreAccess(req.user, storeId);
@@ -53,31 +55,33 @@ app.get('/api/seats', (req, res) => {
   res.json({ seats });
 });
 
-app.post('/api/seats/:seatId/start', (req, res) => {
-  if (req.user.role !== 'user') {
-    return res.status(403).json({ message: 'Only user role can start a seat' });
+app.post("/api/seats/:seatId/start", (req, res) => {
+  if (req.user.role !== "user") {
+    return res.status(403).json({ message: "Only user role can start a seat" });
   }
 
   const db = readDb();
   const seat = db.seats.find((item) => item.id === req.params.seatId);
 
   if (!seat) {
-    return res.status(404).json({ message: 'Seat not found' });
+    return res.status(404).json({ message: "Seat not found" });
   }
   if (!canAccessStore(req.user, seat.storeId)) {
-    return res.status(403).json({ message: 'Forbidden store access' });
+    return res.status(403).json({ message: "Forbidden store access" });
   }
-  if (seat.status !== 'available') {
-    return res.status(409).json({ message: 'Only available seats can be selected' });
+  if (seat.status !== "available") {
+    return res
+      .status(409)
+      .json({ message: "Only available seats can be selected" });
   }
 
-  seat.status = 'occupied';
+  seat.status = "occupied";
   seat.userId = req.user.id;
   writeDb(db);
   res.json({ seat });
 });
 
-app.get('/api/menus', (req, res) => {
+app.get("/api/menus", (req, res) => {
   const db = readDb();
   const storeId = req.query.storeId;
   const forbidden = assertStoreAccess(req.user, storeId);
@@ -87,9 +91,11 @@ app.get('/api/menus', (req, res) => {
   res.json({ menus });
 });
 
-app.post('/api/orders', (req, res) => {
-  if (req.user.role !== 'user') {
-    return res.status(403).json({ message: 'Only user role can create orders' });
+app.post("/api/orders", (req, res) => {
+  if (req.user.role !== "user") {
+    return res
+      .status(403)
+      .json({ message: "Only user role can create orders" });
   }
 
   const db = readDb();
@@ -97,63 +103,86 @@ app.post('/api/orders', (req, res) => {
   const seat = db.seats.find((item) => item.id === seatId);
 
   if (!seat) {
-    return res.status(404).json({ message: 'Seat not found' });
+    return res.status(404).json({ message: "Seat not found" });
   }
-  if (seat.status !== 'occupied' || seat.userId !== req.user.id) {
-    return res.status(403).json({ message: 'Only the user currently using the seat can order' });
+  if (seat.status !== "occupied" || seat.userId !== req.user.id) {
+    return res
+      .status(403)
+      .json({ message: "Only the user currently using the seat can order" });
   }
   if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ message: 'Order items are required' });
+    return res.status(400).json({ message: "Order items are required" });
   }
 
   const orderItems = [];
   for (const requestedItem of items) {
-    const menu = db.menus.find((item) => item.id === requestedItem.menuId && item.storeId === seat.storeId);
+    const menu = db.menus.find(
+      (item) =>
+        item.id === requestedItem.menuId && item.storeId === seat.storeId,
+    );
     const quantity = Number(requestedItem.quantity ?? 1);
 
     if (!menu) {
-      return res.status(404).json({ message: `Menu not found: ${requestedItem.menuId}` });
+      return res
+        .status(404)
+        .json({ message: `Menu not found: ${requestedItem.menuId}` });
     }
     if (menu.stock <= 0 || menu.stock < quantity) {
-      return res.status(409).json({ message: 'Out of stock menu cannot be ordered' });
+      return res
+        .status(409)
+        .json({ message: "Out of stock menu cannot be ordered" });
     }
     if (!Number.isInteger(quantity) || quantity <= 0) {
-      return res.status(400).json({ message: 'Quantity must be a positive integer' });
+      return res
+        .status(400)
+        .json({ message: "Quantity must be a positive integer" });
     }
 
     orderItems.push({
       menuId: menu.id,
       name: menu.name,
       quantity,
-      price: menu.price
+      price: menu.price,
     });
   }
 
   const point = getPoint(db, req.user.id);
-  if (!Number.isInteger(pointsUsed) || pointsUsed < 0 || pointsUsed > point.balance) {
-    return res.status(400).json({ message: 'Invalid points amount' });
+  if (
+    !Number.isInteger(pointsUsed) ||
+    pointsUsed < 0 ||
+    pointsUsed > point.balance
+  ) {
+    return res.status(400).json({ message: "Invalid points amount" });
   }
 
-  const coupon = couponId ? db.coupons.find((item) => item.id === couponId) : null;
-  if (couponId && (!coupon || coupon.userId !== req.user.id || coupon.status !== 'available')) {
-    return res.status(409).json({ message: 'Coupon is not available' });
+  const coupon = couponId
+    ? db.coupons.find((item) => item.id === couponId)
+    : null;
+  if (
+    couponId &&
+    (!coupon || coupon.userId !== req.user.id || coupon.status !== "available")
+  ) {
+    return res.status(409).json({ message: "Coupon is not available" });
   }
 
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = orderItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
   const couponDiscount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
   const finalAmount = Math.max(subtotal - couponDiscount - pointsUsed, 0);
   const order = {
-    id: nextId('order', db.orders),
+    id: nextId("order", db.orders),
     storeId: seat.storeId,
     userId: req.user.id,
     seatId: seat.id,
     items: orderItems,
-    status: 'payment_pending',
+    status: "payment_pending",
     subtotal,
     couponId: coupon?.id ?? null,
     couponDiscount,
     pointsUsed,
-    finalAmount
+    finalAmount,
   };
 
   for (const orderItem of orderItems) {
@@ -161,7 +190,7 @@ app.post('/api/orders', (req, res) => {
     menu.stock -= orderItem.quantity;
   }
   if (coupon) {
-    coupon.status = 'used';
+    coupon.status = "used";
     coupon.orderId = order.id;
   }
   point.balance -= pointsUsed;
@@ -171,41 +200,46 @@ app.post('/api/orders', (req, res) => {
   res.status(201).json({ order });
 });
 
-app.get('/api/orders', (req, res) => {
+app.get("/api/orders", (req, res) => {
   const db = readDb();
   const storeId = req.query.storeId;
 
-  if (req.user.role === 'user') {
-    return res.json({ orders: db.orders.filter((order) => order.userId === req.user.id) });
+  if (req.user.role === "user") {
+    return res.json({
+      orders: db.orders.filter((order) => order.userId === req.user.id),
+    });
   }
 
   const forbidden = assertStoreAccess(req.user, storeId);
   if (forbidden) return forbidden(res);
 
   const orders = db.orders.filter((order) => {
-    if (req.user.role !== 'hq_admin' && order.storeId !== req.user.storeId) return false;
+    if (req.user.role !== "hq_admin" && order.storeId !== req.user.storeId)
+      return false;
     return !storeId || order.storeId === storeId;
   });
   res.json({ orders });
 });
 
-app.get('/api/orders/:orderId', (req, res) => {
+app.get("/api/orders/:orderId", (req, res) => {
   const db = readDb();
   const order = db.orders.find((item) => item.id === req.params.orderId);
 
   if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
+    return res.status(404).json({ message: "Order not found" });
   }
   if (!canReadOrder(req.user, order)) {
-    return res.status(403).json({ message: 'Forbidden order access' });
+    return res.status(403).json({ message: "Forbidden order access" });
   }
 
   res.json({ order });
 });
 
-app.patch('/api/orders/:orderId/status', (req, res) => {
-  if (!['staff', 'store_manager'].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Only store staff or manager can update order status' });
+app.patch("/api/orders/:orderId/status", (req, res) => {
+  if (!["staff", "store_manager"].includes(req.user.role)) {
+    return res
+      .status(403)
+      .json({ message: "Only store staff or manager can update order status" });
   }
 
   const db = readDb();
@@ -213,13 +247,15 @@ app.patch('/api/orders/:orderId/status', (req, res) => {
   const nextStatus = req.body.status;
 
   if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
+    return res.status(404).json({ message: "Order not found" });
   }
   if (!canAccessStore(req.user, order.storeId)) {
-    return res.status(403).json({ message: 'Forbidden store access' });
+    return res.status(403).json({ message: "Forbidden store access" });
   }
   if (!canTransition(order.status, nextStatus)) {
-    return res.status(409).json({ message: `Cannot change ${order.status} to ${nextStatus}` });
+    return res
+      .status(409)
+      .json({ message: `Cannot change ${order.status} to ${nextStatus}` });
   }
 
   order.status = nextStatus;
@@ -227,77 +263,83 @@ app.patch('/api/orders/:orderId/status', (req, res) => {
   res.json({ order });
 });
 
-app.post('/api/payments', (req, res) => {
-  if (req.user.role !== 'user') {
-    return res.status(403).json({ message: 'Only user role can pay orders' });
+app.post("/api/payments", (req, res) => {
+  if (req.user.role !== "user") {
+    return res.status(403).json({ message: "Only user role can pay orders" });
   }
 
   const db = readDb();
-  const { orderId, result = 'success' } = req.body;
+  const { orderId, result = "success" } = req.body;
   const order = db.orders.find((item) => item.id === orderId);
 
   if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
+    return res.status(404).json({ message: "Order not found" });
   }
   if (order.userId !== req.user.id) {
-    return res.status(403).json({ message: 'Users can only pay their own orders' });
+    return res
+      .status(403)
+      .json({ message: "Users can only pay their own orders" });
   }
-  if (order.status !== 'payment_pending') {
-    return res.status(409).json({ message: 'Order is not payment_pending' });
+  if (order.status !== "payment_pending") {
+    return res.status(409).json({ message: "Order is not payment_pending" });
   }
   if (db.payments.some((payment) => payment.orderId === order.id)) {
-    return res.status(409).json({ message: 'Duplicate payment is blocked' });
+    return res.status(409).json({ message: "Duplicate payment is blocked" });
   }
 
   const payment = {
-    id: nextId('payment', db.payments),
+    id: nextId("payment", db.payments),
     orderId: order.id,
-    status: result === 'fail' ? 'failed' : 'success',
-    amount: order.finalAmount
+    status: result === "fail" ? "failed" : "success",
+    amount: order.finalAmount,
   };
   db.payments.push(payment);
 
-  if (payment.status === 'success') {
-    order.status = 'payment_completed';
+  if (payment.status === "success") {
+    order.status = "payment_completed";
   } else {
-    order.status = 'payment_pending';
+    order.status = "payment_pending";
   }
 
   writeDb(db);
   res.status(201).json({ payment, order });
 });
 
-app.post('/api/orders/:orderId/cancel', (req, res) => {
+app.post("/api/orders/:orderId/cancel", (req, res) => {
   const db = readDb();
   const order = db.orders.find((item) => item.id === req.params.orderId);
 
   if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
+    return res.status(404).json({ message: "Order not found" });
   }
   if (!canCancelOrder(req.user, order)) {
-    return res.status(403).json({ message: 'Forbidden order cancel' });
+    return res.status(403).json({ message: "Forbidden order cancel" });
   }
-  if (['canceled', 'refunded'].includes(order.status)) {
-    return res.status(409).json({ message: `${order.status} order cannot be changed` });
+  if (["canceled", "refunded"].includes(order.status)) {
+    return res
+      .status(409)
+      .json({ message: `${order.status} order cannot be changed` });
   }
 
-  order.status = 'canceled';
+  order.status = "canceled";
   restoreCoupon(db, order);
   restorePoints(db, order);
   writeDb(db);
   res.json({ order });
 });
 
-app.get('/api/users/:userId/coupons', (req, res) => {
+app.get("/api/users/:userId/coupons", (req, res) => {
   const db = readDb();
   const targetUser = db.users.find((user) => user.id === req.params.userId);
   const forbidden = assertUserResourceAccess(req.user, targetUser);
   if (forbidden) return forbidden(res);
 
-  res.json({ coupons: db.coupons.filter((coupon) => coupon.userId === req.params.userId) });
+  res.json({
+    coupons: db.coupons.filter((coupon) => coupon.userId === req.params.userId),
+  });
 });
 
-app.get('/api/users/:userId/points', (req, res) => {
+app.get("/api/users/:userId/points", (req, res) => {
   const db = readDb();
   const targetUser = db.users.find((user) => user.id === req.params.userId);
   const forbidden = assertUserResourceAccess(req.user, targetUser);
@@ -306,37 +348,46 @@ app.get('/api/users/:userId/points', (req, res) => {
   res.json({ points: getPoint(db, req.params.userId) });
 });
 
-app.get('/api/stores/:storeId/settlement', (req, res) => {
-  if (!['store_manager', 'hq_admin'].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Only store_manager or hq_admin can read settlement' });
+app.get("/api/stores/:storeId/settlement", (req, res) => {
+  if (!["store_manager", "hq_admin"].includes(req.user.role)) {
+    return res
+      .status(403)
+      .json({ message: "Only store_manager or hq_admin can read settlement" });
   }
 
   const db = readDb();
   const { storeId } = req.params;
 
-  if (storeId !== 'all' && !canAccessStore(req.user, storeId)) {
-    return res.status(403).json({ message: 'Forbidden store access' });
+  if (storeId !== "all" && !canAccessStore(req.user, storeId)) {
+    return res.status(403).json({ message: "Forbidden store access" });
   }
-  if (storeId === 'all' && req.user.role !== 'hq_admin') {
-    return res.status(403).json({ message: 'Only hq_admin can read all store settlement' });
+  if (storeId === "all" && req.user.role !== "hq_admin") {
+    return res
+      .status(403)
+      .json({ message: "Only hq_admin can read all store settlement" });
   }
 
   const completedOrders = db.orders.filter((order) => {
-    if (order.status !== 'completed') return false;
-    return storeId === 'all' || order.storeId === storeId;
+    if (order.status !== "completed") return false;
+    return storeId === "all" || order.storeId === storeId;
   });
 
   res.json({
     storeId,
-    totalSales: completedOrders.reduce((sum, order) => sum + order.finalAmount, 0),
+    totalSales: completedOrders.reduce(
+      (sum, order) => sum + order.finalAmount,
+      0,
+    ),
     orderCount: completedOrders.length,
-    orders: completedOrders
+    orders: completedOrders,
   });
 });
 
-app.get('/api/admin/orders', (req, res) => {
-  if (req.user.role === 'user') {
-    return res.status(403).json({ message: 'User role cannot access admin API' });
+app.get("/api/admin/orders", (req, res) => {
+  if (req.user.role === "user") {
+    return res
+      .status(403)
+      .json({ message: "User role cannot access admin API" });
   }
 
   const db = readDb();
@@ -345,7 +396,8 @@ app.get('/api/admin/orders', (req, res) => {
   if (forbidden) return forbidden(res);
 
   const orders = db.orders.filter((order) => {
-    if (req.user.role !== 'hq_admin' && order.storeId !== req.user.storeId) return false;
+    if (req.user.role !== "hq_admin" && order.storeId !== req.user.storeId)
+      return false;
     return !storeId || order.storeId === storeId;
   });
   res.json({ orders });
@@ -360,7 +412,7 @@ app.listen(PORT, () => {
 });
 
 function readDb() {
-  return JSON.parse(readFileSync(dbPath, 'utf-8'));
+  return JSON.parse(readFileSync(dbPath, "utf-8"));
 }
 
 function writeDb(db) {
@@ -371,33 +423,37 @@ function createToken(user) {
   const payload = {
     userId: user.id,
     role: user.role,
-    storeId: user.storeId
+    storeId: user.storeId,
   };
-  return `mock.${Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url')}`;
+  return `mock.${Buffer.from(JSON.stringify(payload), "utf-8").toString("base64url")}`;
 }
 
 function parseToken(token) {
-  if (!token?.startsWith('mock.')) return null;
+  if (!token?.startsWith("mock.")) return null;
   try {
-    return JSON.parse(Buffer.from(token.slice('mock.'.length), 'base64url').toString('utf-8'));
+    return JSON.parse(
+      Buffer.from(token.slice("mock.".length), "base64url").toString("utf-8"),
+    );
   } catch {
     return null;
   }
 }
 
 function authenticate(req, res, next) {
-  const header = req.header('authorization') ?? '';
-  const token = header.startsWith('Bearer ') ? header.slice('Bearer '.length) : '';
+  const header = req.header("authorization") ?? "";
+  const token = header.startsWith("Bearer ")
+    ? header.slice("Bearer ".length)
+    : "";
   const payload = parseToken(token);
 
   if (!payload) {
-    return res.status(401).json({ message: 'Missing or invalid token' });
+    return res.status(401).json({ message: "Missing or invalid token" });
   }
 
   const db = readDb();
   const user = db.users.find((item) => item.id === payload.userId);
   if (!user || user.role !== payload.role || user.storeId !== payload.storeId) {
-    return res.status(401).json({ message: 'Token user no longer exists' });
+    return res.status(401).json({ message: "Token user no longer exists" });
   }
 
   req.user = user;
@@ -411,50 +467,57 @@ function publicUser(user) {
 
 function canAccessStore(user, storeId) {
   if (!storeId) return true;
-  return user.role === 'hq_admin' || user.storeId === storeId;
+  return user.role === "hq_admin" || user.storeId === storeId;
 }
 
 function assertStoreAccess(user, storeId) {
   if (storeId && !canAccessStore(user, storeId)) {
-    return (res) => res.status(403).json({ message: 'Forbidden store access' });
+    return (res) => res.status(403).json({ message: "Forbidden store access" });
   }
   return null;
 }
 
 function canReadOrder(user, order) {
-  if (user.role === 'user') return order.userId === user.id;
-  if (user.role === 'hq_admin') return true;
+  if (user.role === "user") return order.userId === user.id;
+  if (user.role === "hq_admin") return true;
   return order.storeId === user.storeId;
 }
 
 function canCancelOrder(user, order) {
-  if (user.role === 'user') return order.userId === user.id;
-  if (['staff', 'store_manager'].includes(user.role)) return order.storeId === user.storeId;
+  if (user.role === "user") return order.userId === user.id;
+  if (["staff", "store_manager"].includes(user.role))
+    return order.storeId === user.storeId;
   return false;
 }
 
 function canTransition(currentStatus, nextStatus) {
   const allowed = {
-    payment_pending: ['payment_completed'],
-    payment_completed: ['accepted'],
-    accepted: ['cooking'],
-    cooking: ['completed'],
+    payment_pending: ["payment_completed"],
+    payment_completed: ["accepted"],
+    accepted: ["cooking"],
+    cooking: ["completed"],
     completed: [],
     canceled: [],
-    refunded: []
+    refunded: [],
   };
   return allowed[currentStatus]?.includes(nextStatus) ?? false;
 }
 
 function assertUserResourceAccess(requestUser, targetUser) {
   if (!targetUser) {
-    return (res) => res.status(404).json({ message: 'User not found' });
+    return (res) => res.status(404).json({ message: "User not found" });
   }
-  if (requestUser.role === 'user' && requestUser.id !== targetUser.id) {
-    return (res) => res.status(403).json({ message: 'Users can only access their own resources' });
+  if (requestUser.role === "user" && requestUser.id !== targetUser.id) {
+    return (res) =>
+      res
+        .status(403)
+        .json({ message: "Users can only access their own resources" });
   }
-  if (['staff', 'store_manager'].includes(requestUser.role) && requestUser.storeId !== targetUser.storeId) {
-    return (res) => res.status(403).json({ message: 'Forbidden store access' });
+  if (
+    ["staff", "store_manager"].includes(requestUser.role) &&
+    requestUser.storeId !== targetUser.storeId
+  ) {
+    return (res) => res.status(403).json({ message: "Forbidden store access" });
   }
   return null;
 }
@@ -472,7 +535,7 @@ function restoreCoupon(db, order) {
   if (!order.couponId) return;
   const coupon = db.coupons.find((item) => item.id === order.couponId);
   if (coupon) {
-    coupon.status = 'available';
+    coupon.status = "available";
     coupon.orderId = null;
   }
 }

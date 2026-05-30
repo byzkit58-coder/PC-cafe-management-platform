@@ -1,14 +1,14 @@
-import { test } from '@playwright/test';
-import { users } from '../fixtures/users';
-import { LoginPage } from '../pages/LoginPage';
-import { SeatPage } from '../pages/SeatPage';
-import { resetTestData } from '../utils/reset';
+import { test } from "@playwright/test";
+import { users } from "../fixtures/users";
+import { LoginPage } from "../pages/LoginPage";
+import { SeatPage } from "../pages/SeatPage";
+import { resetTestData } from "../utils/reset";
 
 test.beforeEach(async ({ request }) => {
   await resetTestData(request);
 });
 
-test('TC-SEAT-001 사용 가능한 좌석 선택 성공', async ({ page }) => {
+test("TC-SEAT-001 사용 가능한 좌석 선택 성공", async ({ page }) => {
   const loginPage = new LoginPage(page);
   const seatPage = new SeatPage(page);
 
